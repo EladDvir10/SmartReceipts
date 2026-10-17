@@ -1,8 +1,8 @@
 async function analyzeReceiptWithGemini(base64Data, apiKey) {
-      // שימוש במודל היציב והמומלץ
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+  // שימוש במודל היציב והמומלץ
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
 
-      const prompt = `אתה עוזר מומחה לסריקת קבלות מסופרמרקטים בישראל.
+  const prompt = `אתה עוזר מומחה לסריקת קבלות מסופרמרקטים בישראל.
 עיין בתמונה הזו של הקבלה וחלץ מתוכה את המידע הבא במבנה JSON בלבד (ללא קוד markdown וללא הסברים נוספים):
 {
   "store_name": "שם הסופר/הרשת (למשל: אושר עד, שופרסל, רמי לוי)",
@@ -16,54 +16,53 @@ async function analyzeReceiptWithGemini(base64Data, apiKey) {
   ]
 }`;
 
-      const payload = {
-        contents: [
+  const payload = {
+    contents: [
+      {
+        parts: [
+          { text: prompt },
           {
-            parts: [
-              { text: prompt },
-              {
-                inline_data: {
-                  mime_type: "image/jpeg",
-                  data: base64Data
-                }
-              }
-            ]
+            inline_data: {
+              mime_type: "image/jpeg",
+              data: base64Data
+            }
           }
         ]
-      };
-
-      const headers = {
-        'Content-Type': 'application/json'
-      };
-
-      let fetchUrl = url;
-
-      // זיהוי סוג המפתח (AQ או AIzaSy)
-      if (apiKey.startsWith('AQ.')) {
-        headers['Authorization'] = `Bearer ${apiKey}`;
-        headers['x-goog-user-project'] = '702330486389';
-      } else {
-        fetchUrl = `${url}?key=${apiKey}`;
       }
+    ]
+  };
 
-      const response = await fetch(fetchUrl, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(payload)
-      });
+  const headers = {
+    'Content-Type': 'application/json'
+  };
 
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`שגיאת API (${response.status}): ${errText}`);
-      }
+  let fetchUrl = url;
 
-      const result = await response.json();
-      if (!result.candidates || result.candidates.length === 0) {
-        throw new Error('לא התקבלה תשובה תקינה מ-Gemini');
-      }
+  if (apiKey.startsWith('AQ.')) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    headers['x-goog-user-project'] = '702330486389';
+  } else {
+    fetchUrl = `${url}?key=${apiKey}`;
+  }
 
-      let textResponse = result.candidates[0].content.parts[0].text;
-      textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-      
-      return JSON.parse(textResponse);
-    }
+  const response = await fetch(fetchUrl, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`שגיאת API (${response.status}): ${errText}`);
+  }
+
+  const result = await response.json();
+  if (!result.candidates || result.candidates.length === 0) {
+    throw new Error('לא התקבלה תשובה תקינה מ-Gemini');
+  }
+
+  let textResponse = result.candidates[0].content.parts[0].text;
+  textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+  
+  return JSON.parse(textResponse);
+}
