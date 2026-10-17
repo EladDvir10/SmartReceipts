@@ -1,69 +1,193 @@
-<script>
-async function analyzeReceiptWithGemini(base64Data, apiKey) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>סופר-סמארט קבלות</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-2">
 
-  const prompt = `אתה עוזר מומחה לסריקת קבלות מסופרמרקטים בישראל.
-עיין בתמונה הזו של הקבלה וחלץ מתוכה את המידע הבא במבנה JSON בלבד (ללא קוד markdown וללא הסברים נוספים):
+  <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden min-h-[600px] flex flex-col">
+    
+    <!-- HEADER -->
+    <header class="bg-emerald-700 text-white p-4 text-center relative shadow">
+      <h1 class="text-xl font-bold">סופר-סמארט קבלות</h1>
+      <p class="text-xs text-emerald-100">ניהול הוצאות חכם</p>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 p-4 overflow-y-auto">
+      
+      <!-- TAB: SCANNER -->
+      <section id="tab-scanner" class="tab-content flex flex-col items-center justify-center space-y-6 my-auto">
+        <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center text-4xl shadow-inner">
+          🧾
+        </div>
+        <div class="text-center">
+          <h2 class="text-xl font-bold text-slate-800">סריקת קבלה חדשה</h2>
+          <p class="text-sm text-slate-500 mt-1">צלם קבלה או בחר תמונה לפענוח אוטומטי</p>
+        </div>
+
+        <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+
+        <div class="flex space-x-3 space-x-reverse w-full">
+          <button onclick="document.getElementById('imageInput').click()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition text-center">
+            📷 בחר תמונה / צלם
+          </button>
+        </div>
+
+        <div id="loading" class="hidden text-center mt-4">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
+          <p class="text-sm text-slate-600 mt-2">מפענח קבלה בעזרת Gemini...</p>
+        </div>
+
+        <div id="scanResult" class="w-full mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200 hidden"></div>
+      </section>
+
+      <!-- TAB: SETTINGS -->
+      <section id="tab-settings" class="tab-content hidden space-y-4">
+        <h2 class="text-lg font-bold text-slate-800">הגדרות מפתח API</h2>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Gemini API Key / Token:</label>
+          <input type="password" id="apiKeyInput" placeholder="הדבק כאן את המפתח..." class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-left" dir="ltr">
+        </div>
+        <button onclick="saveApiKey()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition">
+          שמור מפתח
+        </button>
+        <p id="saveMsg" class="text-sm text-emerald-600 font-semibold text-center hidden">המפתח נשמר בהצלחה!</p>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM NAVBAR -->
+    <nav class="bg-slate-50 border-t flex justify-around p-3 text-xs font-semibold text-slate-600">
+      <button onclick="switchTab('scanner')" class="flex flex-col items-center hover:text-emerald-600">
+        <span>📷</span>
+        <span>סריקה</span>
+      </button>
+      <button onclick="switchTab('settings')" class="flex flex-col items-center hover:text-emerald-600">
+        <span>⚙️</span>
+        <span>הגדרות</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    // טעינת מפתח שרשום ב-LocalStorage
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('gemini_api_key');
+      if (savedKey) {
+        document.getElementById('apiKeyInput').value = savedKey;
+      }
+    });
+
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (!key) return alert('אנא הזן מפתח תקין');
+      localStorage.setItem('gemini_api_key', key);
+      const msg = document.getElementById('saveMsg');
+      msg.classList.remove('hidden');
+      setTimeout(() => msg.classList.add('hidden'), 3000);
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tabName).classList.remove('hidden');
+    }
+
+    async function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const apiKey = localStorage.getItem('gemini_api_key');
+      if (!apiKey) {
+        alert('אנא הגדר מפתח API בלשונית ההגדרות תחילה.');
+        switchTab('settings');
+        return;
+      }
+
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('scanResult').classList.add('hidden');
+
+      try {
+        const base64 = await fileToBase64(file);
+        const resultData = await analyzeReceiptWithGemini(base64, apiKey);
+        
+        document.getElementById('scanResult').innerHTML = `
+          <h3 class="font-bold text-emerald-700 text-lg">${resultData.store_name || 'חנות לא מזוהה'}</h3>
+          <p class="text-sm text-slate-600">תאריך: ${resultData.purchase_date || 'לא צוין'}</p>
+          <p class="text-sm text-slate-600 font-bold mt-1">סה"כ: ₪${resultData.total_amount || 0}</p>
+          <ul class="mt-3 text-xs border-t pt-2 space-y-1">
+            ${(resultData.items || []).map(item => `<li class="flex justify-between"><span>${item.name}</span><span>₪${item.price}</span></li>`).join('')}
+          </ul>
+        `;
+        document.getElementById('scanResult').classList.remove('hidden');
+      } catch (err) {
+        alert('שגיאה בסריקה: ' + err.message);
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function analyzeReceiptWithGemini(base64Data, apiKey) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+
+      const prompt = `אתה עוזר מומחה לסריקת קבלות מסופרמרקטים בישראל.
+חלץ מהקבלה מידע בפורמט JSON בלבד (ללא markdown וללא הסברים):
 {
-  "store_name": "שם הסופר/הרשת (למשל: אושר עד, שופרסל, רמי לוי)",
+  "store_name": "שם הסופר",
   "purchase_date": "YYYY-MM-DD",
   "total_amount": 0.00,
-  "items": [
-    {
-      "name": "שם המוצר",
-      "price": 0.00
-    }
-  ]
+  "items": [{"name": "שם המוצר", "price": 0.00}]
 }`;
 
-  const payload = {
-    contents: [
-      {
-        parts: [
-          { text: prompt },
-          {
-            inline_data: {
-              mime_type: "image/jpeg",
-              data: base64Data
-            }
-          }
-        ]
+      const payload = {
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+          ]
+        }]
+      };
+
+      const headers = { 'Content-Type': 'application/json' };
+      let fetchUrl = url;
+
+      if (apiKey.startsWith('AQ.')) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        headers['x-goog-user-project'] = '702330486389';
+      } else {
+        fetchUrl = `${url}?key=${apiKey}`;
       }
-    ]
-  };
 
-  const headers = {
-    'Content-Type': 'application/json'
-  };
+      const response = await fetch(fetchUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+      });
 
-  let fetchUrl = url;
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`שגיאת API (${response.status}): ${errText}`);
+      }
 
-  if (apiKey.startsWith('AQ.')) {
-    headers['Authorization'] = `Bearer ${apiKey}`;
-    headers['x-goog-user-project'] = '702330486389';
-  } else {
-    fetchUrl = `${url}?key=${apiKey}`;
-  }
+      const result = await response.json();
+      let textResponse = result.candidates[0].content.parts[0].text;
+      textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(textResponse);
+    }
+  </script>
 
-  const response = await fetch(fetchUrl, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`שגיאת API (${response.status}): ${errText}`);
-  }
-
-  const result = await response.json();
-  if (!result.candidates || result.candidates.length === 0) {
-    throw new Error('לא התקבלה תשובה תקינה מ-Gemini');
-  }
-
-  let textResponse = result.candidates[0].content.parts[0].text;
-  textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-  
-  return JSON.parse(textResponse);
-}
-</script>
+</body>
+</html>
