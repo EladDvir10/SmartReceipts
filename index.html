@@ -35,7 +35,7 @@ async function analyzeReceiptWithGemini(base64Data, apiKey) {
         'Content-Type': 'application/json'
       };
 
-      // אם המפתח מתחיל ב-AQ, נשלח אותו כ-Bearer Token יחד עם מזהה הפרויקט שלך
+      // שליחת המפתח לפי סוגו
       if (apiKey.startsWith('AQ.')) {
         headers['Authorization'] = `Bearer ${apiKey}`;
         headers['x-goog-user-project'] = '702330486389';
@@ -51,8 +51,7 @@ async function analyzeReceiptWithGemini(base64Data, apiKey) {
 
       if (!response.ok) {
         const errText = await response.text();
-        console.error('API Error details:', errText);
-        throw new Error(`תקלת API (${response.status}): ${errText}`);
+        throw new Error(`Google API Error (${response.status}): ${errText}`);
       }
 
       const result = await response.json();
