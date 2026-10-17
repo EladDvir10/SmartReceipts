@@ -193,28 +193,28 @@
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- Bottom Navigation Bar (Fixed Order) -->
     <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
       <div class="grid grid-cols-5 text-center py-2">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-emerald-600 font-medium text-[10px]">
-          <span class="text-xl">📊</span>
-          <span>דשבורד</span>
-        </button>
-        <button onclick="switchTab('scan')" id="nav-scan" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
-          <span class="text-xl">📷</span>
-          <span>סרוק קבלה</span>
-        </button>
-        <button onclick="switchTab('prices')" id="nav-prices" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
-          <span class="text-xl">🔍</span>
-          <span>מחירים</span>
+        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">⚙️</span>
+          <span>הגדרות</span>
         </button>
         <button onclick="switchTab('list')" id="nav-list" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
           <span class="text-xl">🛒</span>
           <span>רשימה</span>
         </button>
-        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
-          <span class="text-xl">⚙️</span>
-          <span>הגדרות</span>
+        <button onclick="switchTab('prices')" id="nav-prices" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">🔍</span>
+          <span>מחירים</span>
+        </button>
+        <button onclick="switchTab('scan')" id="nav-scan" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">📷</span>
+          <span>סרוק קבלה</span>
+        </button>
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-emerald-600 font-medium text-[10px]">
+          <span class="text-xl">📊</span>
+          <span>דשבורד</span>
         </button>
       </div>
     </nav>
@@ -416,15 +416,15 @@
 
     function resetScanForm() {
       document.getElementById('resultSection').classList.add('hidden');
-      document.getElementById('cameraInput').value = '';
-      document.getElementById('fileInput').value = '';
+      document.getElementById('cameraInput').value = ``;
+      document.getElementById('fileInput').value = ``;
       currentReceiptData = null;
     }
 
     function saveReceipt() {
       if (!currentReceiptData) return;
       
-      currentReceiptData.store_name = document.getElementById('storeName'].value;
+      currentReceiptData.store_name = document.getElementById('storeName').value;
       currentReceiptData.purchase_date = document.getElementById('purchaseDate').value;
 
       let receipts = JSON.parse(localStorage.getItem('saved_receipts') || '[]');
