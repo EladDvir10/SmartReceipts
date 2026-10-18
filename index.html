@@ -21,7 +21,7 @@
       background: #ffffff;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
       position: relative;
-      padding-bottom: 80px;
+      padding-bottom: 90px;
     }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -80,14 +80,14 @@
             📷
           </div>
           <h2 class="text-lg font-bold text-gray-800">סריקת קבלה חדשה</h2>
-          <p class="text-xs text-gray-500 mt-1 mb-4">צלם את הקבלה או בחר תמונה לפענוח אוטומטי.</p>
+          <p class="text-xs text-gray-500 mt-1 mb-4">צלם את קבלה הסופר או בחר תמונה. ה-AI ינתח אותה אוטומטית.</p>
 
           <div class="grid grid-cols-2 gap-3">
-            <label class="flex items-center justify-center space-x-2 space-x-reverse bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-3 rounded-xl cursor-pointer text-xs font-medium shadow-sm transition">
+            <label class="flex items-center justify-center space-x-2 space-x-reverse bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl cursor-pointer text-sm font-medium shadow-sm transition">
               <span>📷 צלם קבלה</span>
               <input type="file" accept="image/*" capture="environment" id="cameraInput" class="hidden" onchange="handleImageSelection(event)">
             </label>
-            <label class="flex items-center justify-center space-x-2 space-x-reverse bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-3 rounded-xl cursor-pointer text-xs font-medium transition">
+            <label class="flex items-center justify-center space-x-2 space-x-reverse bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl cursor-pointer text-sm font-medium transition">
               <span>📁 מהגלריה</span>
               <input type="file" accept="image/*" id="fileInput" class="hidden" onchange="handleImageSelection(event)">
             </label>
@@ -151,18 +151,20 @@
         </div>
       </div>
 
-      <!-- TAB 4: SHOPPING CHECKLIST -->
+      <!-- TAB 4: SHOPPING LIST (CHECKLIST) -->
       <div id="tab-shopping" class="tab-content space-y-4">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
           <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">🛒 רשימת קניות עתידית</h3>
-          <p class="text-xs text-gray-500">הוסף מוצרים לרשימה מראש וסמן אותם תוך כדי קנייה בסופר.</p>
+          <p class="text-xs text-gray-500">הוסף מוצרים לרשימה לפני ההגעה לסופר, וסמן אותם תוך כדי קנייה.</p>
 
           <div class="flex gap-2">
-            <input type="text" id="newShoppingItem" placeholder="שם המוצר..." class="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="text" id="newShoppingItem" placeholder="שם המוצר (למשל: חלב, לחם...)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" onkeypress="if(event.key === 'Enter') addShoppingItem()">
             <button onclick="addShoppingItem()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">הוסף</button>
           </div>
 
-          <div id="shoppingListContainer" class="space-y-2 max-h-80 overflow-y-auto pr-1"></div>
+          <div id="shoppingListContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+            <p class="text-xs text-gray-400 text-center py-4">הרשימה ריקה. הוסף מוצרים למעלה.</p>
+          </div>
 
           <div id="shoppingActions" class="hidden pt-2 border-t border-gray-100 flex justify-between items-center">
             <button onclick="clearCompletedShoppingItems()" class="text-xs text-gray-500 hover:text-emerald-700 underline">נקה מוצרים שסומנו</button>
@@ -171,7 +173,7 @@
         </div>
       </div>
 
-      <!-- TAB 5: SAVED RECEIPTS -->
+      <!-- TAB 5: RECEIPTS LIST -->
       <div id="tab-list" class="tab-content space-y-4">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
           <h3 class="font-bold text-gray-800 text-sm">כל הקבלות השמורות</h3>
@@ -184,21 +186,498 @@
       <!-- TAB 6: SETTINGS -->
       <div id="tab-settings" class="tab-content space-y-4">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-          <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">⚙️ הגדרות</h3>
+          <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">⚙️ הגדרות וניהול נתונים</h3>
 
           <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-2">
             <label class="block text-xs font-bold text-emerald-900">Gemini API Key</label>
-            <p class="text-[11px] text-gray-600">הזן את מפתח ה-API מ-Google AI Studio.</p>
+            <p class="text-[11px] text-gray-600">הזן כאן את מפתח ה-API החינמי שלך מ-Google AI Studio לצורך סריקת הקבלות.</p>
             <div class="flex gap-2 pt-1">
               <input type="password" id="apiKeyInput" placeholder="הדבק מפתח כאן..." class="flex-1 bg-white border border-gray-300 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-              <button onclick="saveApiKey()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">שמור</button>
+              <button onclick="saveApiKey()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">שמור מפתח</button>
             </div>
           </div>
 
           <div>
             <label class="block text-xs text-gray-500 mb-1">תקציב חודשי (₪)</label>
-            <input type="number" id="monthlyBudget" value="2500" onchange="updateBudget(this.value)" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none">
+            <input type="number" id="monthlyBudget" value="2500" onchange="updateBudget(this.value)" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
 
           <div class="pt-2 border-t border-gray-100">
-            <button onclick="clearAllData()" class="w-full bg-red-50 hover:bg-red-10
+            <p class="text-xs text-gray-500 mb-2">גיבוי ואיפוס נתונים</p>
+            <div class="flex gap-2">
+              <button onclick="clearAllData()" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2.5 rounded-xl text-xs transition border border-red-200">
+                🗑️ מחק את כל הנתונים
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Bottom Navigation Bar (6 Tabs) -->
+    <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+      <div class="grid grid-cols-6 text-center py-2">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-emerald-600 font-medium text-[10px]">
+          <span class="text-xl">📊</span>
+          <span>דשבורד</span>
+        </button>
+        <button onclick="switchTab('scan')" id="nav-scan" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">📷</span>
+          <span>סרוק קבלה</span>
+        </button>
+        <button onclick="switchTab('prices')" id="nav-prices" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">🔍</span>
+          <span>מחירים</span>
+        </button>
+        <button onclick="switchTab('shopping')" id="nav-shopping" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">🛒</span>
+          <span>רשימה</span>
+        </button>
+        <button onclick="switchTab('list')" id="nav-list" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">🧾</span>
+          <span>קבלות</span>
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">⚙️</span>
+          <span>הגדרות</span>
+        </button>
+      </div>
+    </nav>
+
+  </div>
+
+  <script>
+    let currentReceiptData = null;
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadApiKeyToInput();
+      checkApiKeyStatus();
+      loadSavedData();
+      loadShoppingList();
+      const savedBudget = localStorage.getItem('monthly_budget');
+      if (savedBudget) {
+        document.getElementById('monthlyBudget').value = savedBudget;
+        updateBudget(savedBudget, false);
+      }
+    });
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(el => {
+        el.classList.remove('text-emerald-600');
+        el.classList.add('text-gray-400');
+      });
+
+      document.getElementById('tab-' + tabName).classList.add('active');
+      const activeNav = document.getElementById('nav-' + tabName);
+      if (activeNav) {
+        activeNav.classList.remove('text-gray-400');
+        activeNav.classList.add('text-emerald-600');
+      }
+    }
+
+    function loadApiKeyToInput() {
+      const key = localStorage.getItem('gemini_api_key') || '';
+      const input = document.getElementById('apiKeyInput');
+      input.value = '';
+      input.placeholder = key
+        ? `מפתח שמור (••••${key.slice(-4)}) - הדבק כאן מפתח חדש להחלפה`
+        : 'הדבק מפתח כאן...';
+    }
+
+    function checkApiKeyStatus() {
+      const key = localStorage.getItem('gemini_api_key');
+      const indicator = document.getElementById('apiKeyIndicator');
+      if (!key) {
+        indicator.textContent = '🔑 חסר מפתח';
+        indicator.className = 'text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium';
+      } else {
+        indicator.textContent = '🔑 מוגדר';
+        indicator.className = 'text-xs bg-emerald-800 px-2.5 py-1 rounded-full text-emerald-200 font-medium';
+      }
+    }
+
+    function saveApiKey() {
+      const input = document.getElementById('apiKeyInput').value.trim();
+      if (input) {
+        localStorage.setItem('gemini_api_key', input);
+        alert('מפתח ה-API נשמר בהצלחה במכשיר!');
+        checkApiKeyStatus();
+        loadApiKeyToInput();
+      } else if (localStorage.getItem('gemini_api_key')) {
+        alert('לא הוזן מפתח חדש. המפתח השמור נשאר כפי שהוא.');
+      } else {
+        alert('נא להזין מפתח תקין');
+      }
+    }
+
+    function showError(msg) {
+      const box = document.getElementById('errorBox');
+      if (!msg) { box.classList.add('hidden'); box.textContent = ''; return; }
+      box.textContent = msg;
+      box.classList.remove('hidden');
+    }
+
+    async function handleImageSelection(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const apiKey = (localStorage.getItem('gemini_api_key') || '').trim();
+      if (!apiKey) {
+        alert('נא להגדיר קודם את מפתח ה-Gemini API בלשונית ההגדרות (⚙️)');
+        switchTab('settings');
+        return;
+      }
+
+      showLoading(true);
+      resetScanForm();
+      showError('');
+
+      try {
+        const base64Image = await fileToBase64(file);
+        const parsedData = await analyzeReceiptWithGemini(base64Image, apiKey);
+        displayReceiptResult(parsedData);
+      } catch (error) {
+        console.error('Scan Error:', error);
+        showError('שגיאה בסריקת הקבלה:\n' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    let lastImageMime = 'image/jpeg';
+
+    function fileToBase64(file, maxSide = 1600, quality = 0.85) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('לא ניתן לקרוא את קובץ התמונה'));
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+              const canvas = document.createElement('canvas');
+              canvas.width = Math.round(img.width * scale);
+              canvas.height = Math.round(img.height * scale);
+              canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+              lastImageMime = 'image/jpeg';
+              resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+            } catch (e) {
+              lastImageMime = file.type || 'image/jpeg';
+              resolve(dataUrl.split(',')[1]);
+            }
+          };
+          img.onerror = () => {
+            lastImageMime = file.type || 'image/jpeg';
+            resolve(dataUrl.split(',')[1]);
+          };
+          img.src = dataUrl;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
+    function normalizeReceipt(data) {
+      const items = Array.isArray(data.items) ? data.items : [];
+      data.items = items.map(it => {
+        let qty = Number(it.quantity);
+        if (!qty || qty <= 0) qty = 1;
+        let price = Number(it.price);
+        let unitPrice = Number(it.unit_price);
+        if (!price && unitPrice) price = qty * unitPrice;
+        if (!unitPrice && price) unitPrice = price / qty;
+        return {
+          name: it.name || '',
+          barcode: String(it.barcode ?? '').replace(/\D/g, ''),
+          quantity: qty,
+          unit: it.unit || "יח'",
+          unit_price: round2(unitPrice),
+          price: round2(price)
+        };
+      });
+      return data;
+    }
+
+    async function analyzeReceiptWithGemini(base64Data, apiKey) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`;
+
+      const prompt = `אתה עוזר מומחה לסריקת קבלות מסופרמרקטים בישראל.
+עיין בתמונה הזו של הקבלה וחלץ מתוכה את המידע הבא במבנה JSON בלבד (ללא קוד markdown וללא הסברים נוספים):
+{
+  "store_name": "שם הסופר/הרשת (למשל: אושר עד, שופרסל, רמי לוי)",
+  "purchase_date": "YYYY-MM-DD",
+  "total_amount": 0.00,
+  "items": [
+    {
+      "name": "שם המוצר",
+      "barcode": "הברקוד של המוצר, ספרות בלבד",
+      "quantity": 1,
+      "unit": "יח'",
+      "unit_price": 0.00,
+      "price": 0.00
+    }
+  ]
+}
+כללים לפריטים:
+- barcode: הקוד הארוך שמודפס בשורת המוצר (בדרך כלל 8 עד 13 ספרות). אם אין קוד בשורה, החזר null.
+- quantity: הכמות שנרכשה. אם לא מצוינת כמות, quantity הוא 1.
+- unit: "יח'" למוצרים ביחידות, או 'ק"ג' למוצרים שנשקלו.
+- unit_price: המחיר ליחידה אחת (או לק"ג).
+- price: הסכום הכולל ששולם עבור השורה.
+- אם שדה לא נראה בקבלה, החזר null.`;
+
+      const payload = {
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: lastImageMime,
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      };
+
+      const attempts = [
+        { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }
+      ];
+      if (apiKey.startsWith('AQ.')) {
+        attempts.push({
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'x-goog-user-project': '702330486389'
+        });
+      }
+
+      let response = null;
+      let firstErr = '';
+      for (let i = 0; i < attempts.length; i++) {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: attempts[i],
+          body: JSON.stringify(payload)
+        });
+        const authFailed = response.status === 401 || response.status === 403;
+        if (response.ok || !authFailed || i === attempts.length - 1) break;
+        firstErr = await response.text();
+      }
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`תקלת API (${response.status}): ${errText.slice(0, 400)}` +
+          (firstErr ? `\n\nשגיאת הניסיון הראשון:\n${firstErr.slice(0, 400)}` : ''));
+      }
+
+      const result = await response.json();
+      if (!result.candidates || result.candidates.length === 0) {
+        throw new Error('לא התקבלה תשובה תקינה מ-Gemini');
+      }
+
+      let textResponse = result.candidates[0].content.parts[0].text;
+      textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+
+      try {
+        return normalizeReceipt(JSON.parse(textResponse));
+      } catch (e) {
+        throw new Error('התשובה מ-Gemini לא הייתה JSON תקין:\n' + textResponse.slice(0, 200));
+      }
+    }
+
+    function displayReceiptResult(data) {
+      data.items = Array.isArray(data.items) ? data.items : [];
+      currentReceiptData = data;
+      document.getElementById('storeName').value = data.store_name || 'סופרמרקט';
+      document.getElementById('purchaseDate').value = data.purchase_date || new Date().toISOString().split('T')[0];
+      renderItems();
+      document.getElementById('resultSection').classList.remove('hidden');
+    }
+
+    function renderItems() {
+      const data = currentReceiptData;
+      if (!data) return;
+      const itemsList = document.getElementById('itemsList');
+      const prevScroll = itemsList.scrollTop;
+      itemsList.innerHTML = '';
+
+      const shownTotal = data.items.length ? data.items.reduce((a, i) => a + (Number(i.price) || 0), 0) : (Number(data.total_amount) || 0);
+      document.getElementById('totalAmount').textContent = `₪${(Number(data.total_amount) || shownTotal).toFixed(2)}`;
+
+      if (data.items.length > 0) {
+        document.getElementById('itemsCount').textContent = data.items.length;
+        data.items.forEach((item, index) => {
+          const itemRow = document.createElement('div');
+          itemRow.className = 'bg-gray-50 p-2.5 rounded-xl text-sm border border-gray-100 space-y-1.5';
+          itemRow.innerHTML = `
+            <div class="flex items-center gap-2">
+              <input type="text" value="${esc(item.name)}" onchange="updateItemName(${index}, this.value)" class="flex-1 bg-transparent border-b border-transparent focus:border-emerald-500 font-medium text-gray-800 text-xs focus:outline-none">
+              <button onclick="removeItem(${index})" class="text-red-400 hover:text-red-600 p-1">🗑️</button>
+            </div>
+            <div class="flex items-center gap-1 text-[11px] text-gray-500">
+              <span>ברקוד</span>
+              <input type="text" inputmode="numeric" dir="ltr" value="${esc(item.barcode \vert{}\vert{} '')}" placeholder="אין" onchange="updateItemBarcode(${index}, this.value)" class="flex-1 bg-white border border-gray-200 rounded-md px-1 py-0.5 text-left text-xs text-gray-800 focus:outline-none focus:border-emerald-500">
+            </div>
+            <div class="flex items-center gap-1 text-[11px] text-gray-500">
+              <span>כמות</span>
+              <input type="number" step="any" min="0" value="${Number(item.quantity) \vert{}\vert{} 1}" onchange="updateItemQty(${index}, this.value)" class="w-14 bg-white border border-gray-200 rounded-md px-1 py-0.5 text-center text-xs text-gray-800 focus:outline-none focus:border-emerald-500">
+              <span>${esc(item.unit || "יח'")}</span>
+              <span>× ₪</span>
+              <input type="number" step="0.01" min="0" value="${Number(item.unit_price) \vert{}\vert{} 0}" onchange="updateItemUnitPrice(${index}, this.value)" class="w-16 bg-white border border-gray-200 rounded-md px-1 py-0.5 text-center text-xs text-gray-800 focus:outline-none focus:border-emerald-500">
+              <span class="mr-auto">סה"כ ₪</span>
+              <input type="number" step="0.01" min="0" value="${Number(item.price) \vert{}\vert{} 0}" onchange="updateItemPrice(${index}, this.value)" class="w-16 bg-white border border-gray-200 rounded-md px-1 py-0.5 text-center text-xs font-bold text-gray-800 focus:outline-none focus:border-emerald-500">
+            </div>
+          `;
+          itemsList.appendChild(itemRow);
+        });
+      } else {
+        document.getElementById('itemsCount').textContent = '0';
+        itemsList.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">לא זוהו פריטים בודדים</p>';
+      }
+      itemsList.scrollTop = prevScroll;
+    }
+
+    function updateItemName(index, val) {
+      if (currentReceiptData?.items[index]) currentReceiptData.items[index].name = val;
+    }
+    function updateItemBarcode(index, val) {
+      if (currentReceiptData?.items[index]) currentReceiptData.items[index].barcode = String(val).replace(/\D/g, '');
+    }
+    function updateItemQty(index, val) {
+      const it = currentReceiptData?.items[index];
+      if (!it) return;
+      const q = parseFloat(val);
+      it.quantity = q > 0 ? q : 1;
+      it.price = round2(it.quantity * it.unit_price);
+      recalculateTotal();
+    }
+    function updateItemUnitPrice(index, val) {
+      const it = currentReceiptData?.items[index];
+      if (!it) return;
+      it.unit_price = round2(parseFloat(val) || 0);
+      it.price = round2(it.quantity * it.unit_price);
+      recalculateTotal();
+    }
+    function updateItemPrice(index, val) {
+      const it = currentReceiptData?.items[index];
+      if (!it) return;
+      it.price = round2(parseFloat(val) || 0);
+      it.unit_price = round2(it.price / (it.quantity || 1));
+      recalculateTotal();
+    }
+
+    function recalculateTotal() {
+      if (!currentReceiptData) return;
+      currentReceiptData.total_amount = round2(currentReceiptData.items.reduce((acc, item) => acc + (Number(item.price) || 0), 0));
+      renderItems();
+    }
+
+    function removeItem(index) {
+      if (currentReceiptData && currentReceiptData.items) {
+        currentReceiptData.items.splice(index, 1);
+        recalculateTotal();
+      }
+    }
+
+    function showLoading(show) {
+      document.getElementById('loadingState').classList.toggle('hidden', !show);
+    }
+
+    function resetScanForm() {
+      document.getElementById('resultSection').classList.add('hidden');
+      document.getElementById('cameraInput').value = '';
+      document.getElementById('fileInput').value = '';
+      currentReceiptData = null;
+    }
+
+    function saveReceipt() {
+      if (!currentReceiptData) return;
+      currentReceiptData.store_name = document.getElementById('storeName').value;
+      currentReceiptData.purchase_date = document.getElementById('purchaseDate').value;
+      const receipts = JSON.parse(localStorage.getItem('saved_receipts') || '[]');
+      receipts.unshift(currentReceiptData);
+      localStorage.setItem('saved_receipts', JSON.stringify(receipts));
+      alert('הקבלה נשמרה בהצלחה!');
+      resetScanForm();
+      switchTab('dashboard');
+      loadSavedData();
+    }
+
+    function loadSavedData() {
+      const receipts = JSON.parse(localStorage.getItem('saved_receipts') || '[]');
+      const totalSpent = receipts.reduce((acc, r) => acc + (Number(r.total_amount) || 0), 0);
+      document.getElementById('dashTotalSpent').textContent = `₪${totalSpent.toFixed(2)}`;
+
+      const dashList = document.getElementById('dashboardRecentList');
+      const fullList = document.getElementById('fullReceiptsList');
+
+      if (receipts.length === 0) {
+        dashList.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">אין עדיין קבלות שמורות</p>';
+        fullList.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">אין עדיין קבלות שמורות</p>';
+        return;
+      }
+
+      dashList.innerHTML = '';
+      fullList.innerHTML = '';
+      receipts.slice(0, 3).forEach(r => dashList.appendChild(createReceiptCard(r)));
+      receipts.forEach(r => fullList.appendChild(createReceiptCard(r)));
+    }
+
+    function createReceiptCard(r) {
+      const div = document.createElement('div');
+      div.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 text-sm';
+      div.innerHTML = `
+        <div>
+          <p class="font-bold text-gray-800">${esc(r.store_name || 'סופרמרקט')}</p>
+          <p class="text-xs text-gray-500">${esc(r.purchase_date \vert{}\vert{} '')} •${r.items ? r.items.length : 0} פריטים</p>
+        </div>
+        <span class="font-bold text-emerald-700">₪${(Number(r.total_amount) || 0).toFixed(2)}</span>
+      `;
+      return div;
+    }
+
+    function updateBudget(val, persist = true) {
+      document.getElementById('dashBudget').textContent = `₪${Number(val).toLocaleString()}`;
+      if (persist) localStorage.setItem('monthly_budget', val);
+    }
+
+    function clearAllData() {
+      if (confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים?')) {
+        localStorage.clear();
+        loadSavedData();
+        loadShoppingList();
+        alert('הנתונים נוקו בהצלחה.');
+      }
+    }
+
+    /* --- ניהול רשימת קניות (Checklist) --- */
+    function loadShoppingList() {
+      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
+      const container = document.getElementById('shoppingListContainer');
+      const actions = document.getElementById('shoppingActions');
+
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">הרשימה ריקה. הוסף מוצרים למעלה.</p>';
+        actions.classList.add('hidden');
+        return;
+      }
+
+      actions.classList.remove('hidden');
+      container.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = `flex items-center justify-between bg-gray-50 p-2.5 rounded-
