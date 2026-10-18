@@ -378,26 +378,38 @@
         }
       };
 
-      const headers = { 'Content-Type': 'application/json' };
-
-      // מפתח שמתחיל ב-AQ. נשלח כ-Bearer Token יחד עם מזהה הפרויקט
-      const isBearer = apiKey.startsWith('AQ.');
-      if (isBearer) {
-        headers['Authorization'] = `Bearer ${apiKey}`;
-        headers['x-goog-user-project'] = '702330486389';
+      // ניסיון 1: המפתח כ-API key רגיל (כך עובדים גם מפתחות AQ. שנוצרו ב-AI Studio)
+      // ניסיון 2 (רק למפתחות AQ.): כ-Bearer Token עם מזהה הפרויקט
+      const attempts = [
+        { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }
+      ];
+      if (apiKey.startsWith('AQ.')) {
+        attempts.push({
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'x-goog-user-project': '702330486389'
+        });
       }
-      const fetchUrl = isBearer ? url : `${url}?key=${encodeURIComponent(apiKey)}`;
 
-      const response = await fetch(fetchUrl, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(payload)
-      });
+      let response = null;
+      let firstErr = '';
+      for (let i = 0; i < attempts.length; i++) {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: attempts[i],
+          body: JSON.stringify(payload)
+        });
+        const authFailed = response.status === 401 || response.status === 403;
+        if (response.ok || !authFailed || i === attempts.length - 1) break;
+        firstErr = await response.text();
+        console.warn('ניסיון אימות ראשון נכשל, מנסה שיטה נוספת:', firstErr);
+      }
 
       if (!response.ok) {
         const errText = await response.text();
-        console.error('API Error details:', errText);
-        throw new Error(`תקלת API (${response.status}): ${errText.slice(0, 400)}`);
+        console.error('API Error details:', errText, firstErr);
+        throw new Error(`תקלת API (${response.status}): ${errText.slice(0, 400)}` +
+          (firstErr ? `\n\nשגיאת הניסיון הראשון:\n${firstErr.slice(0, 400)}` : ''));
       }
 
       const result = await response.json();
