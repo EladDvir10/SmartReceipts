@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartReceipts - סופר קבלות</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -124,7 +124,9 @@
 
           <div>
             <label class="block text-xs text-gray-500 mb-2">פריטים שזוהו (<span id="itemsCount">0</span>)</label>
-            <div id="itemsList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+            <div id="itemsList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+              <!-- Items injected here -->
+            </div>
           </div>
 
           <div class="flex justify-between items-center pt-3 border-t">
@@ -151,29 +153,7 @@
         </div>
       </div>
 
-      <!-- TAB 4: SHOPPING LIST (CHECKLIST) -->
-      <div id="tab-shopping" class="tab-content space-y-4">
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-          <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">🛒 רשימת קניות עתידית</h3>
-          <p class="text-xs text-gray-500">הוסף מוצרים לרשימה לפני ההגעה לסופר, וסמן אותם תוך כדי קנייה.</p>
-
-          <div class="flex gap-2">
-            <input type="text" id="newShoppingItem" placeholder="שם המוצר (למשל: חלב, לחם...)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" onkeypress="if(event.key === 'Enter') addShoppingItem()">
-            <button onclick="addShoppingItem()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">הוסף</button>
-          </div>
-
-          <div id="shoppingListContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1">
-            <p class="text-xs text-gray-400 text-center py-4">הרשימה ריקה. הוסף מוצרים למעלה.</p>
-          </div>
-
-          <div id="shoppingActions" class="hidden pt-2 border-t border-gray-100 flex justify-between items-center">
-            <button onclick="clearCompletedShoppingItems()" class="text-xs text-gray-500 hover:text-emerald-700 underline">נקה מוצרים שסומנו</button>
-            <button onclick="clearAllShoppingItems()" class="text-xs text-red-500 hover:text-red-700 underline">מחק הכל</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 5: RECEIPTS LIST -->
+      <!-- TAB 4: RECEIPTS LIST -->
       <div id="tab-list" class="tab-content space-y-4">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
           <h3 class="font-bold text-gray-800 text-sm">כל הקבלות השמורות</h3>
@@ -183,11 +163,39 @@
         </div>
       </div>
 
+      <!-- TAB 5: SHOPPING LIST (רשימת קניות חדשה) -->
+      <div id="tab-shopping" class="tab-content space-y-4">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-gray-800 text-sm">רשימת קניות לקנייה הבאה</h3>
+            <span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-medium" id="shoppingCount">0 פריטים</span>
+          </div>
+
+          <!-- Add Item Form -->
+          <div class="flex gap-2">
+            <input type="text" id="newItemInput" placeholder="הוסף מוצר לרשימה (למשל: חלב, ביצים...)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" onkeypress="handleShoppingKeyPress(event)">
+            <button onclick="addShoppingItem()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">הוסף</button>
+          </div>
+
+          <!-- List container -->
+          <div id="shoppingListContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+            <p class="text-xs text-gray-400 text-center py-4">רשימת הקניות ריקה</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex justify-between items-center pt-2 border-t border-gray-100 text-xs">
+            <button onclick="clearCompletedShoppingItems()" class="text-gray-500 hover:text-red-600 transition">🗑️ נקה פריטים שסומנו</button>
+            <button onclick="clearAllShoppingList()" class="text-red-500 hover:text-red-700 transition">מחק הכל</button>
+          </div>
+        </div>
+      </div>
+
       <!-- TAB 6: SETTINGS -->
       <div id="tab-settings" class="tab-content space-y-4">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
           <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">⚙️ הגדרות וניהול נתונים</h3>
 
+          <!-- Gemini API Key Configuration -->
           <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-2">
             <label class="block text-xs font-bold text-emerald-900">Gemini API Key</label>
             <p class="text-[11px] text-gray-600">הזן כאן את מפתח ה-API החינמי שלך מ-Google AI Studio לצורך סריקת הקבלות.</p>
@@ -215,31 +223,31 @@
 
     </main>
 
-    <!-- Bottom Navigation Bar (6 Tabs) -->
+    <!-- Bottom Navigation Bar (Updated to 6 Tabs) -->
     <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
       <div class="grid grid-cols-6 text-center py-2">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-emerald-600 font-medium text-[10px]">
-          <span class="text-xl">📊</span>
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-emerald-600 font-medium text-[9px]">
+          <span class="text-lg">📊</span>
           <span>דשבורד</span>
         </button>
-        <button onclick="switchTab('scan')" id="nav-scan" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
-          <span class="text-xl">📷</span>
-          <span>סרוק קבלה</span>
+        <button onclick="switchTab('scan')" id="nav-scan" class="flex flex-col items-center text-gray-400 font-medium text-[9px]">
+          <span class="text-lg">📷</span>
+          <span>סרוק</span>
         </button>
-        <button onclick="switchTab('prices')" id="nav-prices" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
-          <span class="text-xl">🔍</span>
+        <button onclick="switchTab('prices')" id="nav-prices" class="flex flex-col items-center text-gray-400 font-medium text-[9px]">
+          <span class="text-lg">🔍</span>
           <span>מחירים</span>
         </button>
-        <button onclick="switchTab('shopping')" id="nav-shopping" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
-          <span class="text-xl">🛒</span>
-          <span>רשימה</span>
-        </button>
-        <button onclick="switchTab('list')" id="nav-list" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
-          <span class="text-xl">🧾</span>
+        <button onclick="switchTab('list')" id="nav-list" class="flex flex-col items-center text-gray-400 font-medium text-[9px]">
+          <span class="text-lg">🧾</span>
           <span>קבלות</span>
         </button>
-        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
-          <span class="text-xl">⚙️</span>
+        <button onclick="switchTab('shopping')" id="nav-shopping" class="flex flex-col items-center text-gray-400 font-medium text-[9px]">
+          <span class="text-lg">🛒</span>
+          <span>רשימה</span>
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center text-gray-400 font-medium text-[9px]">
+          <span class="text-lg">⚙️</span>
           <span>הגדרות</span>
         </button>
       </div>
@@ -250,6 +258,7 @@
   <script>
     let currentReceiptData = null;
 
+    // מניעת הזרקת HTML משמות מוצרים
     function esc(s) {
       return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
@@ -258,7 +267,7 @@
       loadApiKeyToInput();
       checkApiKeyStatus();
       loadSavedData();
-      loadShoppingList();
+      loadShoppingListData();
       const savedBudget = localStorage.getItem('monthly_budget');
       if (savedBudget) {
         document.getElementById('monthlyBudget').value = savedBudget;
@@ -273,9 +282,7 @@
         el.classList.add('text-gray-400');
       });
 
-      const target = document.getElementById('tab-' + tabName);
-      if (target) target.classList.add('active');
-
+      document.getElementById('tab-' + tabName).classList.add('active');
       const activeNav = document.getElementById('nav-' + tabName);
       if (activeNav) {
         activeNav.classList.remove('text-gray-400');
@@ -286,7 +293,6 @@
     function loadApiKeyToInput() {
       const key = localStorage.getItem('gemini_api_key') || '';
       const input = document.getElementById('apiKeyInput');
-      if (!input) return;
       input.value = '';
       input.placeholder = key
         ? `מפתח שמור (••••${key.slice(-4)}) - הדבק כאן מפתח חדש להחלפה`
@@ -296,7 +302,6 @@
     function checkApiKeyStatus() {
       const key = localStorage.getItem('gemini_api_key');
       const indicator = document.getElementById('apiKeyIndicator');
-      if (!indicator) return;
       if (!key) {
         indicator.textContent = '🔑 חסר מפתח';
         indicator.className = 'text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium';
@@ -322,7 +327,6 @@
 
     function showError(msg) {
       const box = document.getElementById('errorBox');
-      if (!box) return;
       if (!msg) { box.classList.add('hidden'); box.textContent = ''; return; }
       box.textContent = msg;
       box.classList.remove('hidden');
@@ -412,7 +416,7 @@
     }
 
     async function analyzeReceiptWithGemini(base64Data, apiKey) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`;
 
       const prompt = `אתה עוזר מומחה לסריקת קבלות מסופרמרקטים בישראל.
 עיין בתמונה הזו של הקבלה וחלץ מתוכה את המידע הבא במבנה JSON בלבד (ללא קוד markdown וללא הסברים נוספים):
@@ -432,11 +436,12 @@
   ]
 }
 כללים לפריטים:
-- barcode: הקוד הארוך שמודפס בשורת המוצר (בדרך כלל 8 עד 13 ספרות). אם אין קוד בשורה, החזר null.
-- quantity: הכמות שנרכשה. אם לא מצוינת כמות, quantity הוא 1.
-- unit: "יח'" למוצרים ביחידות, או 'ק"ג' למוצרים שנשקלו.
-- unit_price: המחיר ליחידה אחת (או לק"ג).
-- price: הסכום הכולל ששולם עבור השורה.
+- barcode: הקוד הארוך שמודפס בשורת המוצר (בדרך כלל 8 עד 13 ספרות, כמו 7290106574977). בפירות וירקות במשקל הקוד קצר יותר (למשל 9001419), והעתק אותו כמו שהוא. ספרות בלבד, בלי רווחים. אל תבלבל בינו לבין מחירים וכמויות. אם אין קוד בשורה, החזר null.
+- quantity: הכמות שנרכשה. שורה כמו "2 יחידות x 8.90" פירושה כמות 2 ומחיר ליחידה 8.90. אם לא מצוינת כמות, quantity הוא 1.
+- unit: "יח'" למוצרים ביחידות, או 'ק"ג' למוצרים שנשקלו (למשל "1.196 ק"ג x 6.90" פירושו כמות 1.196 ומחיר לק"ג 6.90).
+- unit_price: המחיר ליחידה אחת (או לק"ג). במבצע כמו "3 ב 80" חשב את המחיר האפקטיבי ליחידה: הסכום ששולם חלקי הכמות.
+- price: הסכום הכולל ששולם עבור השורה (כמות כפול מחיר ליחידה, אחרי מבצע).
+- שורות מבצע כמו "3 ב 80" הן הסבר ולא פריט נפרד. אל תחזור על אותה שורה פעמיים.
 - אם שדה לא נראה בקבלה, החזר null.`;
 
       const payload = {
@@ -598,27 +603,26 @@
     }
 
     function showLoading(show) {
-      const el = document.getElementById('loadingState');
-      if (el) el.classList.toggle('hidden', !show);
+      document.getElementById('loadingState').classList.toggle('hidden', !show);
     }
 
     function resetScanForm() {
-      const res = document.getElementById('resultSection');
-      const cam = document.getElementById('cameraInput');
-      const file = document.getElementById('fileInput');
-      if (res) res.classList.add('hidden');
-      if (cam) cam.value = '';
-      if (file) file.value = '';
+      document.getElementById('resultSection').classList.add('hidden');
+      document.getElementById('cameraInput').value = '';
+      document.getElementById('fileInput').value = '';
       currentReceiptData = null;
     }
 
     function saveReceipt() {
       if (!currentReceiptData) return;
+
       currentReceiptData.store_name = document.getElementById('storeName').value;
       currentReceiptData.purchase_date = document.getElementById('purchaseDate').value;
+
       const receipts = JSON.parse(localStorage.getItem('saved_receipts') || '[]');
       receipts.unshift(currentReceiptData);
       localStorage.setItem('saved_receipts', JSON.stringify(receipts));
+
       alert('הקבלה נשמרה בהצלחה!');
       resetScanForm();
       switchTab('dashboard');
@@ -627,13 +631,12 @@
 
     function loadSavedData() {
       const receipts = JSON.parse(localStorage.getItem('saved_receipts') || '[]');
+
       const totalSpent = receipts.reduce((acc, r) => acc + (Number(r.total_amount) || 0), 0);
-      const spentEl = document.getElementById('dashTotalSpent');
-      if (spentEl) spentEl.textContent = `₪${totalSpent.toFixed(2)}`;
+      document.getElementById('dashTotalSpent').textContent = `₪${totalSpent.toFixed(2)}`;
 
       const dashList = document.getElementById('dashboardRecentList');
       const fullList = document.getElementById('fullReceiptsList');
-      if (!dashList || !fullList) return;
 
       if (receipts.length === 0) {
         dashList.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">אין עדיין קבלות שמורות</p>';
@@ -643,113 +646,11 @@
 
       dashList.innerHTML = '';
       fullList.innerHTML = '';
+
       receipts.slice(0, 3).forEach(r => dashList.appendChild(createReceiptCard(r)));
       receipts.forEach(r => fullList.appendChild(createReceiptCard(r)));
     }
 
     function createReceiptCard(r) {
       const div = document.createElement('div');
-      div.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 text-sm';
-      div.innerHTML = `
-        <div>
-          <p class="font-bold text-gray-800">${esc(r.store_name || 'סופרמרקט')}</p>
-          <p class="text-xs text-gray-500">${esc(r.purchase_date || '')} • ${r.items ? r.items.length : 0} פריטים</p>
-        </div>
-        <span class="font-bold text-emerald-700">₪${(Number(r.total_amount) || 0).toFixed(2)}</span>
-      `;
-      return div;
-    }
-
-    function updateBudget(val, persist = true) {
-      const budgetEl = document.getElementById('dashBudget');
-      if (budgetEl) budgetEl.textContent = `₪${Number(val).toLocaleString()}`;
-      if (persist) localStorage.setItem('monthly_budget', val);
-    }
-
-    function clearAllData() {
-      if (confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים?')) {
-        localStorage.clear();
-        loadSavedData();
-        loadShoppingList();
-        alert('הנתונים נוקו בהצלחה.');
-      }
-    }
-
-    /* --- ניהול רשימת קניות (Checklist) --- */
-    function loadShoppingList() {
-      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
-      const container = document.getElementById('shoppingListContainer');
-      const actions = document.getElementById('shoppingActions');
-      if (!container || !actions) return;
-
-      if (items.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">הרשימה ריקה. הוסף מוצרים למעלה.</p>';
-        actions.classList.add('hidden');
-        return;
-      }
-
-      actions.classList.remove('hidden');
-      container.innerHTML = '';
-
-      items.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = `flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-sm transition ${item.checked ? 'opacity-60 bg-emerald-50/40' : ''}`;
-        div.innerHTML = `
-          <label class="flex items-center gap-3 flex-1 cursor-pointer">
-            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleShoppingItem(${index})" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
-            <span class="${item.checked ? 'line-through text-gray-400' : 'text-gray-800 font-medium'} text-xs">${esc(item.name)}</span>
-          </label>
-          <button onclick="deleteShoppingItem(${index})" class="text-red-400 hover:text-red-600 p-1 text-xs">🗑️</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function addShoppingItem() {
-      const input = document.getElementById('newShoppingItem');
-      if (!input) return;
-      const name = input.value.trim();
-      if (!name) return;
-      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
-      items.push({ name: name, checked: false });
-      localStorage.setItem('shopping_checklist', JSON.stringify(items));
-      input.value = '';
-      loadShoppingList();
-    }
-
-    function toggleShoppingItem(index) {
-      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
-      if (items[index]) {
-        items[index].checked = !items[index].checked;
-        localStorage.setItem('shopping_checklist', JSON.stringify(items));
-        loadShoppingList();
-      }
-    }
-
-    function deleteShoppingItem(index) {
-      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
-      items.splice(index, 1);
-      localStorage.setItem('shopping_checklist', JSON.stringify(items));
-      loadShoppingList();
-    }
-
-    function clearCompletedShoppingItems() {
-      let items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
-      items = items.filter(item => !item.checked);
-      localStorage.setItem('shopping_checklist', JSON.stringify(items));
-      loadShoppingList();
-    }
-
-    function clearAllShoppingItems() {
-      if (confirm('האם למחוק את כל רשימת הקניות?')) {
-        localStorage.removeItem('shopping_checklist');
-        loadShoppingList();
-      }
-    }
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
-    }
-  </script>
-</body>
-</html>
+      div.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 text-sm
