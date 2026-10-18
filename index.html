@@ -153,7 +153,32 @@
         </div>
       </div>
 
-      <!-- TAB 4: RECEIPTS LIST -->
+      <!-- TAB 4: SHOPPING LIST (CHECKLIST) -->
+      <div id="tab-shopping" class="tab-content space-y-4">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">🛒 רשימת קניות עתידית</h3>
+          <p class="text-xs text-gray-500">הוסף מוצרים לרשימה לפני ההגעה לסופר, וסמן אותם תוך כדי קנייה.</p>
+
+          <!-- Add Item Form -->
+          <div class="flex gap-2">
+            <input type="text" id="newShoppingItem" placeholder="שם המוצר (למשל: חלב, לחם...)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" onkeypress="if(event.key === 'Enter') addShoppingItem()">
+            <button onclick="addShoppingItem()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">הוסף</button>
+          </div>
+
+          <!-- Items Checklist -->
+          <div id="shoppingListContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+            <p class="text-xs text-gray-400 text-center py-4">הרשימה ריקה. הוסף מוצרים למעלה.</p>
+          </div>
+
+          <!-- Clear List Button -->
+          <div id="shoppingActions" class="hidden pt-2 border-t border-gray-100 flex justify-between items-center">
+            <button onclick="clearCompletedShoppingItems()" class="text-xs text-gray-500 hover:text-emerald-700 underline">נקה מוצרים שסומנו</button>
+            <button onclick="clearAllShoppingItems()" class="text-xs text-red-500 hover:text-red-700 underline">מחק הכל</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: RECEIPTS LIST -->
       <div id="tab-list" class="tab-content space-y-4">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
           <h3 class="font-bold text-gray-800 text-sm">כל הקבלות השמורות</h3>
@@ -163,7 +188,7 @@
         </div>
       </div>
 
-      <!-- TAB 5: SETTINGS -->
+      <!-- TAB 6: SETTINGS -->
       <div id="tab-settings" class="tab-content space-y-4">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
           <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2">⚙️ הגדרות וניהול נתונים</h3>
@@ -196,9 +221,9 @@
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- Bottom Navigation Bar (6 Tabs) -->
     <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-      <div class="grid grid-cols-5 text-center py-2">
+      <div class="grid grid-cols-6 text-center py-2">
         <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-emerald-600 font-medium text-[10px]">
           <span class="text-xl">📊</span>
           <span>דשבורד</span>
@@ -211,9 +236,13 @@
           <span class="text-xl">🔍</span>
           <span>מחירים</span>
         </button>
-        <button onclick="switchTab('list')" id="nav-list" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+        <button onclick="switchTab('shopping')" id="nav-shopping" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
           <span class="text-xl">🛒</span>
           <span>רשימה</span>
+        </button>
+        <button onclick="switchTab('list')" id="nav-list" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
+          <span class="text-xl">🧾</span>
+          <span>קבלות</span>
         </button>
         <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center text-gray-400 font-medium text-[10px]">
           <span class="text-xl">⚙️</span>
@@ -236,6 +265,7 @@
       loadApiKeyToInput();
       checkApiKeyStatus();
       loadSavedData();
+      loadShoppingList();
       const savedBudget = localStorage.getItem('monthly_budget');
       if (savedBudget) {
         document.getElementById('monthlyBudget').value = savedBudget;
@@ -651,6 +681,78 @@
         localStorage.removeItem('saved_receipts');
         loadSavedData();
         alert('הנתונים נוקו בהצלחה.');
+      }
+    }
+
+    /* --- פונקציות ניהול רשימת קניות (Checklist) --- */
+    function loadShoppingList() {
+      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
+      const container = document.getElementById('shoppingListContainer');
+      const actions = document.getElementById('shoppingActions');
+
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">הרשימה ריקה. הוסף מוצרים למעלה.</p>';
+        actions.classList.add('hidden');
+        return;
+      }
+
+      actions.classList.remove('hidden');
+      container.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = `flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-sm transition ${item.checked ? 'opacity-60 bg-emerald-50/40' : ''}`;
+        div.innerHTML = `
+          <label class="flex items-center gap-3 flex-1 cursor-pointer">
+            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleShoppingItem(${index})" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+            <span class="${item.checked ? 'line-through text-gray-400' : 'text-gray-800 font-medium'} text-xs">${esc(item.name)}</span>
+          </label>
+          <button onclick="deleteShoppingItem(${index})" class="text-red-400 hover:text-red-600 p-1 text-xs">🗑️</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addShoppingItem() {
+      const input = document.getElementById('newShoppingItem');
+      const name = input.value.trim();
+      if (!name) return;
+
+      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
+      items.push({ name: name, checked: false });
+      localStorage.setItem('shopping_checklist', JSON.stringify(items));
+
+      input.value = '';
+      loadShoppingList();
+    }
+
+    function toggleShoppingItem(index) {
+      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
+      if (items[index]) {
+        items[index].checked = !items[index].checked;
+        localStorage.setItem('shopping_checklist', JSON.stringify(items));
+        loadShoppingList();
+      }
+    }
+
+    function deleteShoppingItem(index) {
+      const items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
+      items.splice(index, 1);
+      localStorage.setItem('shopping_checklist', JSON.stringify(items));
+      loadShoppingList();
+    }
+
+    function clearCompletedShoppingItems() {
+      let items = JSON.parse(localStorage.getItem('shopping_checklist') || '[]');
+      items = items.filter(item => !item.checked);
+      localStorage.setItem('shopping_checklist', JSON.stringify(items));
+      loadShoppingList();
+    }
+
+    function clearAllShoppingItems() {
+      if (confirm('האם למחוק את כל רשימת הקניות?')) {
+        localStorage.removeItem('shopping_checklist');
+        loadShoppingList();
       }
     }
 
