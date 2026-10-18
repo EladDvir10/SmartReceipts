@@ -255,6 +255,10 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      // אם אין מפתח שמור, נטען אוטומטית את המפתח שסיפקת
+      if (!localStorage.getItem('gemini_api_key')) {
+        localStorage.setItem('gemini_api_key', 'AQ.Ab8RN6Jhg7ZvxEK8L86Hrvpp8C7oJJm6iAxab9cg5MJunrP5lw');
+      }
       loadApiKeyToInput();
       checkApiKeyStatus();
       loadSavedData();
@@ -412,7 +416,8 @@
     }
 
     async function analyzeReceiptWithGemini(base64Data, apiKey) {
-      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent`;
+      // שימוש במודל העדכני gemini-3.8-flash תחת v1beta
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`;
 
       const prompt = `אתה עוזר מומחה לסריקת קבלות מסופרמרקטים בישראל.
 עיין בתמונה הזו של הקבלה וחלץ מתוכה את המידע הבא במבנה JSON בלבד (ללא קוד markdown וללא הסברים נוספים):
@@ -458,9 +463,8 @@
         }
       };
 
-      const attempts = [
-        { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }
-      ];
+      // הגדרת כותרות התואמות למפתח מסוג AQ. (OAuth Bearer token)
+      const attempts = [];
       if (apiKey.startsWith('AQ.')) {
         attempts.push({
           'Content-Type': 'application/json',
@@ -468,6 +472,7 @@
           'x-goog-user-project': '702330486389'
         });
       }
+      attempts.push({ 'Content-Type': 'application/json', 'x-goog-api-key': apiKey });
 
       let response = null;
       let firstErr = '';
