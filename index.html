@@ -363,6 +363,30 @@
       });
     }
 
+    function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
+    // מבטיח שלכל פריט יש כמות, יחידה, מחיר ליחידה וסכום שורה עקביים
+    function normalizeReceipt(data) {
+      const items = Array.isArray(data.items) ? data.items : [];
+      data.items = items.map(it => {
+        let qty = Number(it.quantity);
+        if (!qty || qty <= 0) qty = 1;
+        let price = Number(it.price);
+        let unitPrice = Number(it.unit_price);
+        if (!price && unitPrice) price = qty * unitPrice;
+        if (!unitPrice && price) unitPrice = price / qty;
+        return {
+          name: it.name || '',
+          barcode: String(it.barcode ?? '').replace(/\D/g, ''),
+          quantity: qty,
+          unit: it.unit || "יח'",
+          unit_price: round2(unitPrice),
+          price: round2(price)
+        };
+      });
+      return data;
+    }
+
     async function analyzeReceiptWithGemini(base64Data, apiKey) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`;
 
@@ -375,10 +399,22 @@
   "items": [
     {
       "name": "שם המוצר",
+      "barcode": "הברקוד של המוצר, ספרות בלבד",
+      "quantity": 1,
+      "unit": "יח'",
+      "unit_price": 0.00,
       "price": 0.00
     }
   ]
-}`;
+}
+כללים לפריטים:
+- barcode: הקוד הארוך שמודפס בשורת המוצר (בדרך כלל 8 עד 13 ספרות, כמו 7290106574977). בפירות וירקות במשקל הקוד קצר יותר (למשל 9001419), והעתק אותו כמו שהוא. ספרות בלבד, בלי רווחים. אל תבלבל בינו לבין מחירים וכמויות. אם אין קוד בשורה, החזר null.
+- quantity: הכמות שנרכשה. שורה כמו "2 יחידות x 8.90" פירושה כמות 2 ומחיר ליחידה 8.90. אם לא מצוינת כמות, quantity הוא 1.
+- unit: "יח'" למוצרים ביחידות, או 'ק"ג' למוצרים שנשקלו (למשל "1.196 ק"ג x 6.90" פירושו כמות 1.196 ומחיר לק"ג 6.90).
+- unit_price: המחיר ליחידה אחת (או לק"ג). במבצע כמו "3 ב 80" חשב את המחיר האפקטיבי ליחידה: הסכום ששולם חלקי הכמות.
+- price: הסכום הכולל ששולם עבור השורה (כמות כפול מחיר ליחידה, אחרי מבצע).
+- שורות מבצע כמו "3 ב 80" הן הסבר ולא פריט נפרד. אל תחזור על אותה שורה פעמיים.
+- אם שדה לא נראה בקבלה, החזר null.`;
 
       const payload = {
         contents: [
@@ -442,7 +478,7 @@
       textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
 
       try {
-        return JSON.parse(textResponse);
+        return normalizeReceipt(JSON.parse(textResponse));
       } catch (e) {
         throw new Error('התשובה מ-Gemini לא הייתה JSON תקין:\n' + textResponse.slice(0, 200));
       }
@@ -453,20 +489,44 @@
       currentReceiptData = data;
       document.getElementById('storeName').value = data.store_name || 'סופרמרקט';
       document.getElementById('purchaseDate').value = data.purchase_date || new Date().toISOString().split('T')[0];
-      document.getElementById('totalAmount').textContent = `₪${(Number(data.total_amount) || 0).toFixed(2)}`;
+      renderItems();
+      document.getElementById('resultSection').classList.remove('hidden');
+    }
 
+    // מציג את רשימת הפריטים והסכום בלי לדרוס את שם החנות והתאריך שנערכו
+    function renderItems() {
+      const data = currentReceiptData;
+      if (!data) return;
       const itemsList = document.getElementById('itemsList');
+      const prevScroll = itemsList.scrollTop;
       itemsList.innerHTML = '';
+
+      const shownTotal = data.items.length ? data.items.reduce((a, i) => a + (Number(i.price) || 0), 0) : (Number(data.total_amount) || 0);
+      document.getElementById('totalAmount').textContent = `₪${(Number(data.total_amount) || shownTotal).toFixed(2)}`;
 
       if (data.items.length > 0) {
         document.getElementById('itemsCount').textContent = data.items.length;
         data.items.forEach((item, index) => {
           const itemRow = document.createElement('div');
-          itemRow.className = 'flex items-center space-x-2 space-x-reverse bg-gray-50 p-2.5 rounded-xl text-sm border border-gray-100';
+          itemRow.className = 'bg-gray-50 p-2.5 rounded-xl text-sm border border-gray-100 space-y-1.5';
           itemRow.innerHTML = `
-            <input type="text" value="${esc(item.name)}" onchange="updateItemName(${index}, this.value)" class="flex-1 bg-transparent border-b border-transparent focus:border-emerald-500 font-medium text-gray-800 text-xs focus:outline-none">
-            <input type="number" step="0.01" value="${Number(item.price) || 0}" onchange="updateItemPrice(${index}, this.value)" class="w-16 text-left bg-transparent border-b border-transparent focus:border-emerald-500 font-bold text-gray-700 text-xs focus:outline-none">
-            <button onclick="removeItem(${index})" class="text-red-400 hover:text-red-600 p-1">🗑️</button>
+            <div class="flex items-center gap-2">
+              <input type="text" value="${esc(item.name)}" onchange="updateItemName(${index}, this.value)" class="flex-1 bg-transparent border-b border-transparent focus:border-emerald-500 font-medium text-gray-800 text-xs focus:outline-none">
+              <button onclick="removeItem(${index})" class="text-red-400 hover:text-red-600 p-1">🗑️</button>
+            </div>
+            <div class="flex items-center gap-1 text-[11px] text-gray-500">
+              <span>ברקוד</span>
+              <input type="text" inputmode="numeric" dir="ltr" value="${esc(item.barcode || '')}" placeholder="אין" onchange="updateItemBarcode(${index}, this.value)" class="flex-1 bg-white border border-gray-200 rounded-md px-1 py-0.5 text-left text-xs text-gray-800 focus:outline-none focus:border-emerald-500">
+            </div>
+            <div class="flex items-center gap-1 text-[11px] text-gray-500">
+              <span>כמות</span>
+              <input type="number" step="any" min="0" value="${Number(item.quantity) || 1}" onchange="updateItemQty(${index}, this.value)" class="w-14 bg-white border border-gray-200 rounded-md px-1 py-0.5 text-center text-xs text-gray-800 focus:outline-none focus:border-emerald-500">
+              <span>${esc(item.unit || "יח'")}</span>
+              <span>× ₪</span>
+              <input type="number" step="0.01" min="0" value="${Number(item.unit_price) || 0}" onchange="updateItemUnitPrice(${index}, this.value)" class="w-16 bg-white border border-gray-200 rounded-md px-1 py-0.5 text-center text-xs text-gray-800 focus:outline-none focus:border-emerald-500">
+              <span class="mr-auto">סה"כ ₪</span>
+              <input type="number" step="0.01" min="0" value="${Number(item.price) || 0}" onchange="updateItemPrice(${index}, this.value)" class="w-16 bg-white border border-gray-200 rounded-md px-1 py-0.5 text-center text-xs font-bold text-gray-800 focus:outline-none focus:border-emerald-500">
+            </div>
           `;
           itemsList.appendChild(itemRow);
         });
@@ -474,32 +534,48 @@
         document.getElementById('itemsCount').textContent = '0';
         itemsList.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">לא זוהו פריטים בודדים</p>';
       }
-
-      document.getElementById('resultSection').classList.remove('hidden');
+      itemsList.scrollTop = prevScroll;
     }
 
     function updateItemName(index, val) {
       if (currentReceiptData?.items[index]) currentReceiptData.items[index].name = val;
     }
+    function updateItemBarcode(index, val) {
+      if (currentReceiptData?.items[index]) currentReceiptData.items[index].barcode = String(val).replace(/\D/g, '');
+    }
+    function updateItemQty(index, val) {
+      const it = currentReceiptData?.items[index];
+      if (!it) return;
+      const q = parseFloat(val);
+      it.quantity = q > 0 ? q : 1;
+      it.price = round2(it.quantity * it.unit_price);
+      recalculateTotal();
+    }
+    function updateItemUnitPrice(index, val) {
+      const it = currentReceiptData?.items[index];
+      if (!it) return;
+      it.unit_price = round2(parseFloat(val) || 0);
+      it.price = round2(it.quantity * it.unit_price);
+      recalculateTotal();
+    }
     function updateItemPrice(index, val) {
-      if (currentReceiptData?.items[index]) {
-        currentReceiptData.items[index].price = parseFloat(val) || 0;
-        recalculateTotal();
-      }
+      const it = currentReceiptData?.items[index];
+      if (!it) return;
+      it.price = round2(parseFloat(val) || 0);
+      it.unit_price = round2(it.price / (it.quantity || 1));
+      recalculateTotal();
     }
 
     function recalculateTotal() {
       if (!currentReceiptData) return;
-      const sum = currentReceiptData.items.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
-      currentReceiptData.total_amount = sum;
-      document.getElementById('totalAmount').textContent = `₪${sum.toFixed(2)}`;
+      currentReceiptData.total_amount = round2(currentReceiptData.items.reduce((acc, item) => acc + (Number(item.price) || 0), 0));
+      renderItems();
     }
 
     function removeItem(index) {
       if (currentReceiptData && currentReceiptData.items) {
         currentReceiptData.items.splice(index, 1);
         recalculateTotal();
-        displayReceiptResult(currentReceiptData);
       }
     }
 
